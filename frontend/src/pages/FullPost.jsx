@@ -7,6 +7,7 @@ import { Index } from "../components/AddComment";
 import { CommentsBlock } from "../components/CommentsBlock";
 import axios from "../axios";
 
+import ReactMarkown from "react-markdown";
 export const FullPost = () => {
   const { id } = useParams();
   const [data, setData] = React.useState();
@@ -28,6 +29,8 @@ export const FullPost = () => {
     return <Post isLoading={isLoading} isFullPost />;
   }
 
+  console.log(data.user);
+
   return (
     <>
       <Post
@@ -41,7 +44,7 @@ export const FullPost = () => {
         tags={["react", "fun", "typescript"]}
         isFullPost
       >
-        <p>{data.text}</p>
+        <ReactMarkown children={data.text} />
       </Post>
       <CommentsBlock
         items={[

@@ -96,6 +96,7 @@ export const getOne = async (req, res) => {
       findOnePostUpdate,
       findOnePostCondition
     )
+      .populate()
       .then((doc) => {
         if (!doc) {
           return res.status(404).json({

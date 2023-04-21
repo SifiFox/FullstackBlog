@@ -6,23 +6,76 @@ import Button from "@mui/material/Button";
 
 import styles from "./Login.module.scss";
 
+import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAuth, selectIsAuth } from "../../redux/slices/auth";
+import { Navigate, useNavigate } from "react-router-dom";
+
 export const Login = () => {
+  const dispatch = useDispatch();
+  const isAuth = useSelector(selectIsAuth);
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isValid },
+  } = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    mode: "onChange",
+  });
+
+  if (isAuth) {
+    navigate("/");
+  }
+
+  const onSubmit = async (values) => {
+    const data = await dispatch(fetchAuth(values));
+
+    if (!data.payload) {
+      return alert("Не удалось авторизоваться");
+    }
+
+    if (data.payload.token) {
+      window.localStorage.setItem("token", data.payload.token);
+      <Navigate to="/" />;
+    } else {
+      alert("Не удалось авторизоваться");
+    }
+  };
+
+  React.useEffect(() => {}, []);
+
   return (
     <Paper classes={{ root: styles.root }}>
       <Typography classes={{ root: styles.title }} variant="h5">
         Вход в аккаунт
       </Typography>
-      <TextField
-        className={styles.field}
-        label="E-Mail"
-        error
-        helperText="Неверно указана почта"
-        fullWidth
-      />
-      <TextField className={styles.field} label="Пароль" fullWidth />
-      <Button size="large" variant="contained" fullWidth>
-        Войти
-      </Button>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <TextField
+          className={styles.field}
+          label="E-Mail"
+          type="email"
+          error={Boolean(errors.email?.message)}
+          helperText={errors.email?.message}
+          fullWidth
+          {...register("email", { required: "Укажите почту" })}
+        />
+        <TextField
+          className={styles.field}
+          label="Пароль"
+          fullWidth
+          error={Boolean(errors.password?.message)}
+          helperText={errors.password?.message}
+          {...register("password", { required: "Укажите пароль" })}
+        />
+        <Button type="submit" size="large" variant="contained" fullWidth>
+          Войти
+        </Button>
+      </form>
     </Paper>
   );
 };

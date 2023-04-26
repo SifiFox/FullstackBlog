@@ -7,7 +7,7 @@ import SimpleMDE from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import styles from "./AddPost.module.scss";
 import { selectIsAuth } from "../../redux/slices/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import axios from "../../axios";
@@ -17,6 +17,10 @@ export const AddPost = () => {
   const [text, setText] = React.useState("");
   const [title, setTitle] = React.useState("");
   const [tags, setTags] = React.useState("");
+
+  const { id } = useParams();
+
+  const isEditing = Boolean(id);
 
   const [isLoading, setLoading] = React.useState(false);
 
@@ -68,15 +72,17 @@ export const AddPost = () => {
       const fields = {
         title,
         imageUrl,
-        tags: tags.split(","),
+        tags,
         text,
       };
 
-      const { data } = await axios.post("/posts", fields);
+      const { data } = isEditing
+        ? await axios.patch(`/posts/${id}`, fields)
+        : await axios.post("/posts", fields);
 
-      const id = data._id;
+      const _id = isEditing ? id : data._id;
 
-      navigate(`/posts/${id}`);
+      navigate(`/posts/${_id}`);
     } catch (error) {
       console.log(error);
       alert("Статья не создалась");
@@ -86,6 +92,22 @@ export const AddPost = () => {
   if (!window.localStorage.getItem("token") && !isAuth) {
     navigate("/");
   }
+
+  React.useEffect(() => {
+    if (id) {
+      axios
+        .get(`/posts/${id}`)
+        .then(({ data }) => {
+          setTitle(data.title);
+          setText(data.text);
+          setImageUrl(data.imageUrl);
+          setTags(data.tags.join(","));
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, []);
 
   return (
     <Paper style={{ padding: 30 }}>
@@ -141,7 +163,7 @@ export const AddPost = () => {
       />
       <div className={styles.buttons}>
         <Button onClick={onSubmit} size="large" variant="contained">
-          Опубликовать
+          {isEditing ? "Сохранить" : "Опубликовать"}
         </Button>
         <Button size="large">Отмена</Button>
       </div>

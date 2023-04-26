@@ -12,6 +12,9 @@ import styles from "./Post.module.scss";
 import { UserInfo } from "../UserInfo";
 import { PostSkeleton } from "./Skeleton";
 
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRemovePost } from "../../redux/slices/posts";
+
 export const Post = ({
   id,
   title,
@@ -26,6 +29,14 @@ export const Post = ({
   isLoading,
   isEditable,
 }) => {
+  const dispatch = useDispatch();
+
+  const onClickRemove = () => {
+    if (window.confirm("Вы действительно хотите выйти?")) {
+      dispatch(fetchRemovePost(id));
+    }
+  };
+
   if (isLoading) {
     return <PostSkeleton />;
   }
@@ -37,7 +48,7 @@ export const Post = ({
           <IconButton color="primary">
             <EditIcon />
           </IconButton>
-          <IconButton color="secondary">
+          <IconButton onClick={onClickRemove} color="secondary">
             <DeleteIcon />
           </IconButton>
         </div>
@@ -45,7 +56,7 @@ export const Post = ({
       {imageUrl && (
         <img
           className={clsx(styles.image, { [styles.imageFull]: isFullPost })}
-          src={`http://localhost:4444${imageUrl}`}
+          src={imageUrl}
           alt={title}
         />
       )}
